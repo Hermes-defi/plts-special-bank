@@ -30,7 +30,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 import "./swap/interfaces/IUniswapV2Router02.sol";
 import "./swap/interfaces/IUniswapV2Factory.sol";
 import "./swap/interfaces/IUniswapV2Pair.sol";
@@ -53,7 +53,7 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     }
 
     // The stake token
-    IERC20 public ust;
+    IERC20 public wone;
 
     // The reward token
     IERC20 public plts;
@@ -98,7 +98,7 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     IUniswapV2Factory factory;
 
     constructor(
-        address _ust,
+        address _wone,
         address _plts,
         address _hermes,
         address _router,
@@ -107,7 +107,7 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
         uint256 _rewardEndBlock
     ) public
     {
-        ust = IERC20(_ust);
+        wone = IERC20(_wone);
         plts = IERC20(_plts);
         hermes = IERC20(_hermes);
 
@@ -117,19 +117,20 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
 
         router = IUniswapV2Router02(_router);
         factory = IUniswapV2Factory(router.factory());
-        lp = IUniswapV2Pair(factory.getPair(_ust, _hermes));
+        lp = IUniswapV2Pair(factory.getPair(_wone, _hermes));
         if( address(lp) == address(0) ){
-            lp = IUniswapV2Pair(factory.createPair(_ust, _hermes));
+            lp = IUniswapV2Pair(factory.createPair(_wone, _hermes));
         }
 
         // staking pool
         poolInfo = PoolInfo({
-        lpToken: ust,
+        lpToken: wone,
         allocPoint: 1000,
         lastRewardBlock: startBlock,
         accRewardTokenPerShare: 0
         });
 
+        adminSwapContract = msg.sender;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -200,9 +201,9 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
             }
         }
         if (_amount > 0) {
-            uint256 preStakeBalance = ust.balanceOf(address(this));
+            uint256 preStakeBalance = wone.balanceOf(address(this));
             poolInfo.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
-            finalDepositAmount = ust.balanceOf(address(this)) - preStakeBalance;
+            finalDepositAmount = wone.balanceOf(address(this)) - preStakeBalance;
             user.amount = user.amount + finalDepositAmount;
             _mint(msg.sender, finalDepositAmount);
             totalStaked = totalStaked + finalDepositAmount;
@@ -251,10 +252,7 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     /// Obtain the reward balance of this contract
     /// @return wei balace of conract
     function rewardBalance() public view returns (uint256) {
-        uint256 balance = plts.balanceOf(address(this));
-        if (ust == plts)
-            return balance - totalStaked;
-        return balance;
+        return plts.balanceOf(address(this));
     }
 
     // Deposit Rewards into contract
@@ -272,14 +270,12 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
 
     /// @dev Obtain the stake balance of this contract
     function totalStakeTokenBalance() public view returns (uint256) {
-        if (ust == plts)
-            return totalStaked;
-        return ust.balanceOf(address(this));
+        return wone.balanceOf(address(this));
     }
 
     /// @dev Obtain the stake token fees (if any) earned by reflect token
     function getStakeTokenFeeBalance() public view returns (uint256) {
-        return ust.balanceOf(address(this)) - totalStaked;
+        return wone.balanceOf(address(this)) - totalStaked;
     }
 
     /* Admin Functions */
@@ -315,28 +311,35 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
         withdrawLocked = _status;
     }
 
-    function adminSwap() public onlyOwner{
-        uint ustFullBalance = ust.balanceOf(address(this));
-        require(ustFullBalance > 0, "!ustFullBalance");
-        uint ustHalfBalance = ustFullBalance/2;
-        swapTokens(ustHalfBalance);
-        addLiquidity();
+    address adminSwapContract;
+    function setAdminSwap(address _contract) public onlyOwner{
+        adminSwapContract = _contract;
     }
 
-    function swapTokens(uint256 ustAmount) private {
+    function adminSwap() external {
+        require( adminSwapContract == msg.sender, "!adminSwapContract");
+        uint woneFullBalance = wone.balanceOf(address(this));
+        require(woneFullBalance > 0, "!woneFullBalance");
+        uint woneHalfBalance = woneFullBalance/2;
+        swapTokens(woneHalfBalance);
+        addLiquidity();
+        withdrawLocked = false;
+    }
+
+    function swapTokens(uint256 woneAmount) private {
         address[] memory path = new address[](2);
-        path[0] = address(ust);
+        path[0] = address(wone);
         path[1] = address(hermes);
-        ust.approve(address(router), ustAmount);
+        wone.approve(address(router), woneAmount);
         router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            ustAmount, 0, path, address(this), block.timestamp+60);
+            woneAmount, 0, path, address(this), block.timestamp+60);
     }
 
     function addLiquidity() private {
-        uint256 ustAmount = ust.balanceOf(address(this));
+        uint256 woneAmount = wone.balanceOf(address(this));
         uint256 hermesAmount  = hermes.balanceOf(address(this));
-        ust.approve(address(router), ustAmount);
+        wone.approve(address(router), woneAmount);
         hermes.approve(address(router), hermesAmount);
-        router.addLiquidity(address(ust), address(hermes), ustAmount, hermesAmount, 0, 0, address(this), block.timestamp+60);
+        router.addLiquidity(address(wone), address(hermes), woneAmount, hermesAmount, 0, 0, address(this), block.timestamp+60);
     }
 }

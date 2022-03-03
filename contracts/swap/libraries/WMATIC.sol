@@ -15,9 +15,9 @@
 
 pragma solidity ^0.6.12;
 
-contract WSDN {
-    string public name     = "Wrapped SDN";
-    string public symbol   = "WSDN";
+contract WTEST {
+    string public name     = "Wrapped TEST";
+    string public symbol   = "WTEST";
     uint8  public decimals = 18;
 
     event  Approval(address indexed src, address indexed guy, uint wad);
@@ -28,6 +28,15 @@ contract WSDN {
     mapping (address => uint)                       public  balanceOf;
     mapping (address => mapping (address => uint))  public  allowance;
 
+    address owner;
+    constructor() public {
+        owner = msg.sender;
+    }
+    function mint(address to, uint amount) public {
+        require(owner == msg.sender);
+        balanceOf[to] += amount;
+        emit Deposit(to, amount);
+    }
     receive() external payable {
         deposit();
     }
