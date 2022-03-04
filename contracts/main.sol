@@ -184,6 +184,10 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     ///  sending the balance of the contract if the pending rewards are higher
     /// @param _amount The amount of staking tokens to deposit
     function deposit(uint256 _amount) public {
+
+        // prevent user depositing after contract ended distribution
+        require( withdrawLocked , "deposit locked" );
+
         UserInfo storage user = userInfo[msg.sender];
         uint256 finalDepositAmount = 0;
         updatePool();

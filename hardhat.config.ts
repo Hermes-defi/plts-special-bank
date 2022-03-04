@@ -34,8 +34,12 @@ const config: HardhatUserConfig = {
     localhost: {
       url: 'http://localhost:8545',
     },
-    cro: {
-      url: `https://evm-cronos.crypto.org`,
+    mainnet: {
+      url: `https://rpc.hermesdefi.io/`,
+      accounts: [`${process.env.PRIVATE_KEY}`]
+    },
+    testnet: {
+      url: `https://api.s0.b.hmny.io`,
       accounts: [`${process.env.PRIVATE_KEY}`]
     },
   },

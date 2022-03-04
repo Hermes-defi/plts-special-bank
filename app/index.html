@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample Site</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/3.0.0-rc.5/web3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="abi-admin.js"></script>
+    <script src="abi-main.js"></script>
+    <script src="abi-token.js"></script>
+    <script src="main.js"></script>
+    <style>
+        fieldset {
+            width: 480px;
+            float: left;
+        }
+    </style>
+    <script>
+        // web3 functions to operate on blockchain (connected to metamask)
+        let web3;
+
+        // first user address connected, ie, wallet address
+        let account;
+
+        // contract object to make calls
+        let plts, hermes, main, admin, wone, lp;
+
+        const woneAddress = '0x7466d7d0c21fa05f32f5a0fa27e12bdc06348ce2'
+        const pltsAddress = '0x8C39B2437ED1fc680a534c728248019EBe14572C'
+        const hermesAddress = '0x16d272F0e2A8Ae846a74a51E63A47380b5B54F71'
+        const mainAddress = '0x0428120bfb679057f21F02f0F76CF59bAE56a0F6'
+        const adminAddress = '0x888d9d9992229DAE0b7f29eeEA0649cd93e2B698'
+
+    </script>
+
+</head>
+
+<body onload="onLoad()">
+
+<div style="background-color:yellow;">
+    <span id="tx"></span>
+</div>
+
+<hr/>
+
+<div style="">
+    <fieldset>
+        <legend>general stats</legend>
+        <div><i>This are general status about your wallet and about farming contract.</i></div>
+        <hr/>
+        <div id="account">account</div>
+        <div id="blockNumber">blockNumber</div>
+        <div id="pltsBalance">pltsBalance</div>
+        <div id="hermesBalance">hermesBalance</div>
+        <div id="pltsBalanceMain">pltsBalanceMain</div>
+        <div id="startBlock">startBlock</div>
+        <div id="rewardEndBlock">rewardEndBlock</div>
+        <div id="rewardPerBlock">rewardPerBlock</div>
+    </fieldset>
+
+    <fieldset>
+        <legend>farming stats</legend>
+        <div><i>This is are stats for user that's going to deposit WONE to staking contract.</i></div>
+        <hr/>
+        <div id="mainLpAddress">mainLpAddress</div>
+        <div>
+            My LP balance: <span id="myLpBalance">0</span>
+        </div>
+
+        <div id="totalStaked">totalStaked</div>
+        <div id="myOneBalance">myOneBalance</div>
+        <div id="mainOneBalance">mainOneBalance</div>
+        <div><i>Deposit and Withdraw WONE as user not as admin.</i></div>
+        <div id="allowance">Allowance</div>
+        <input value="Approve" type="button" onclick="approve_main()"/>
+        <input id="stake" value="Deposit WONE" type="button" onclick="stake()"/>
+        <input type="number" style="width: 100px" id="stake_unstake_amount" value="100"/>
+        <input id="unstake" value="Withdraw LP" type="button" onclick="unstake()"/>
+
+        <div>
+        <span id="pendingReward">pendingReward</span>
+        <input id="withdrawReward" value="Withdraw Reward" type="button" onclick="withdrawReward()"/>
+        </div>
+        <div id="pltsBalance2">pltsBalance2</div>
+        <div>
+            My staked shares: <span id="myStakedShares">0</span>
+        </div>
+
+    </fieldset>
+
+    <fieldset>
+        <legend>admin</legend>
+
+        <div><i>This are tools for admin, just approve both token and click run do to the Swap.
+        After, deposit to farming contract get halted and users can only withdraw.</i></div>
+        <hr/>
+
+        <div>
+            <span id="adminAllowanceWONE">Allowance WONE</span>
+            <input value="Approve WONE" type="button" onclick="approve_by(wone, adminAddress)"/>
+        </div>
+
+        <div>
+            <span id="adminAllowanceHRMS">Allowance HRMS</span>
+            <input value="Approve HRMS" type="button" onclick="approve_by(hermes, adminAddress)"/>
+        </div>
+
+        WONE: <input style="width: 100px" type="number" id="run_wone" value="100"/>
+        HRMS: <input style="width: 100px" type="number" id="run_hrms" value="100"/>
+        <input value="Run" type="button" id="adminRun" onclick="run($('#run_wone').val(), $('#run_hrms').val())"/>
+
+        <div>
+            Owner: <span id="adminOwner">adminOwner</span>
+        </div>
+        <div>
+            withdrawLocked: <span id="withdrawLocked">?</span>
+            <input value="setAdminSwap" type="button" onclick="setAdminSwap()"/>
+        </div>
+
+        <div>
+            change owner: <input id="newOwner" value=""/>
+            <input value="transferOwnership" type="button" onclick="transferOwnership($('#newOwner').val())"/>
+        </div>
+
+    </fieldset>
+
+</div>
+</body>
+</html>
