@@ -220,6 +220,7 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     /// Withdraw rewards and/or staked tokens. Pass a 0 amount to withdraw only rewards
     /// @param _amount The amount of staking tokens to withdraw
     function withdraw(uint256 _amount) public {
+        // withdraw lock should be false
         require( ! withdrawLocked , "withdraw locked" );
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
@@ -311,6 +312,9 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     function getTimestamp() public view returns(uint256){
         return block.timestamp;
     }
+
+
+
     function setWithdrawStatus(bool _status) public onlyOwner{
         withdrawLocked = _status;
     }
