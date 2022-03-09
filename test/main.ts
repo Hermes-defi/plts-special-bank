@@ -88,23 +88,23 @@ describe("main", () => {
     });
 
     describe("admin", () => {
-        it("run", async () => {
+        it("run with 500k in deposits", async () => {
             await plts.mint(main.address, toWei('100'));
 
-            await weth.mint(user1, toWei('100'));
-            await weth.mint(user2, toWei('100'));
-            await weth.mint(user3, toWei('100'));
+            await weth.mint(user1, toWei('200000'));
+            await weth.mint(user2, toWei('200000'));
+            await weth.mint(user3, toWei('100000'));
 
-            await weth.connect(USER1).approve(main.address, toWei('100'));
-            await weth.connect(USER2).approve(main.address, toWei('100'));
-            await weth.connect(USER3).approve(main.address, toWei('100'));
+            await weth.connect(USER1).approve(main.address, toWei('200000'));
+            await weth.connect(USER2).approve(main.address, toWei('200000'));
+            await weth.connect(USER3).approve(main.address, toWei('200000'));
 
-            await main.connect(USER1).deposit(toWei('100'))
-            await main.connect(USER2).deposit(toWei('100'))
-            await main.connect(USER3).deposit(toWei('100'))
+            await main.connect(USER1).deposit(toWei('200000'))
+            await main.connect(USER2).deposit(toWei('200000'))
+            await main.connect(USER3).deposit(toWei('100000'))
 
             const balanceOfMainDev = (await main.balanceOf(user1)).toString();
-            expect( fromWei(balanceOfMainDev) ).to.be.eq('100.0');
+            expect( fromWei(balanceOfMainDev) ).to.be.eq('200000.0');
 
             await expect(
                 main.withdraw(balanceOfMainDev)
@@ -119,29 +119,90 @@ describe("main", () => {
             expect(balanceOfLp).to.be.eq('0')
 
             let balanceOfUst = fromWei( (await weth.balanceOf( main.address)).toString());
-            expect(balanceOfUst).to.be.eq('300.0')
+            expect(balanceOfUst).to.be.eq('500000.0')
 
             // simulate admin liquidity add
             await main.setAdminSwap( admin.address );
-            const _300k = toWei('300000');
-            await weth.mint(dev, _300k);
-            await hermes.mint(dev, _300k);
-            await weth.approve(admin.address, _300k);
-            await hermes.approve(admin.address, _300k);
+            const _250k = toWei('275000');
+            await weth.mint(dev, _250k);
+            await hermes.mint(dev, _250k);
+            await weth.approve(admin.address, _250k);
+            await hermes.approve(admin.address, _250k);
 
-            await admin.run(_300k, _300k);
+            await admin.run(_250k, _250k);
             balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
             // 50% of amount added less fee
-            expect(balanceOfLp).to.be.eq('149.549999999999999999');
+            expect(balanceOfLp).to.be.eq('130952.38095238095238095');
 
             balanceOfLp = fromWei( (await lp.balanceOf( dev)).toString());
             // 100% in lp units
-            expect(balanceOfLp).to.be.eq('299999.999999999999999')
+            expect(balanceOfLp).to.be.eq('274999.999999999999999');
+
+            const reserves = await lp.getReserves();
+            const reserve1 = parseFloat(fromWei(reserves[1]));
+            const reserve2 = parseFloat(fromWei(reserves[0]));
+            const price1 = reserve2 / reserve1;
+            const price2 = reserve1 / reserve2;
+            console.log(price1, price2)
 
         });
+
+
+        it("run with 250k in deposits", async () => {
+            await plts.mint(main.address, toWei('100'));
+
+            await weth.mint(user1, toWei('100000'));
+            await weth.mint(user2, toWei('100000'));
+            await weth.mint(user3, toWei('50000'));
+
+            await weth.connect(USER1).approve(main.address, toWei('100000'));
+            await weth.connect(USER2).approve(main.address, toWei('100000'));
+            await weth.connect(USER3).approve(main.address, toWei('50000'));
+
+            await main.connect(USER1).deposit(toWei('100000'))
+            await main.connect(USER2).deposit(toWei('100000'))
+            await main.connect(USER3).deposit(toWei('50000'))
+
+            const balanceOfMainDev = (await main.balanceOf(user1)).toString();
+            expect( fromWei(balanceOfMainDev) ).to.be.eq('100000.0');
+
+            await expect(
+                main.withdraw(balanceOfMainDev)
+            ).to.be.revertedWith('withdraw locked');
+
+            await expect(
+                main.connect(USER1).setWithdrawStatus(true)
+            ).to.be.revertedWith('Ownable: caller is not the owner');
+
+            await main.setWithdrawStatus(false);
+            let balanceOfLp = (await lp.balanceOf( main.address)).toString();
+            expect(balanceOfLp).to.be.eq('0')
+
+            let balanceOfUst = fromWei( (await weth.balanceOf( main.address)).toString());
+            expect(balanceOfUst).to.be.eq('250000.0')
+
+            // simulate admin liquidity add
+            await main.setAdminSwap( admin.address );
+            const _250k = toWei('275000');
+            await weth.mint(dev, _250k);
+            await hermes.mint(dev, _250k);
+            await weth.approve(admin.address, _250k);
+            await hermes.approve(admin.address, _250k);
+
+            await admin.run(_250k, _250k);
+            balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
+            // 50% of amount added less fee
+            expect(balanceOfLp).to.be.eq('85937.499999999999999998');
+
+            balanceOfLp = fromWei( (await lp.balanceOf( dev)).toString());
+            // 100% in lp units
+            expect(balanceOfLp).to.be.eq('274999.999999999999999');
+
+        });
+
     });
 
-/*
+
     describe("main", () => {
 
         it("test deposit and withdraw reward", async () => {
@@ -171,7 +232,7 @@ describe("main", () => {
             await main.withdrawReward();
 
             const balanceOfPLTSDev = (await plts.balanceOf(dev)).toString();
-            expect( fromWei(balanceOfPLTSDev) ).to.be.eq('5.0');
+            expect( fromWei(balanceOfPLTSDev) ).to.be.eq('4.0');
 
         });
 
@@ -295,5 +356,5 @@ describe("main", () => {
 
 
     });
-*/
+
 });
