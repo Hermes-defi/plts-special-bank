@@ -1,0 +1,3 @@
+- `yarn start`
+- in a separate terminal `yarn test`
+- see `package.json` for running individual test.
