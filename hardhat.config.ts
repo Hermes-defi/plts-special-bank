@@ -27,10 +27,10 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    hardhat: {
-      blockGasLimit: 12_450_000,
-      hardfork: "london"
-    },
+    // hardhat: {
+    //   blockGasLimit: 12_450_000,
+    //   hardfork: "london"
+    // },
     localhost: {
       url: 'http://localhost:8545',
     },
@@ -49,9 +49,9 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 0,
   },
-  etherscan: {
-    apiKey: `${process.env.API_KEY}`
-  }
+  // etherscan: {
+  //   apiKey: `${process.env.API_KEY}`
+  // }
 };
 
 export default config;

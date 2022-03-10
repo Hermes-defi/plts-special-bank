@@ -36,7 +36,7 @@ import "./swap/interfaces/IUniswapV2Factory.sol";
 import "./swap/interfaces/IUniswapV2Pair.sol";
 import "./main.sol";
 
-contract Admin is Ownable{
+contract Admin is Ownable {
     using SafeERC20 for IERC20;
     Main public main;
     IERC20 public wone;
@@ -52,8 +52,7 @@ contract Admin is Ownable{
         address _plts,
         address _hermes,
         address _router
-    ) public
-    {
+    ) public {
         main = Main(_main);
         wone = IERC20(_wone);
         plts = IERC20(_plts);
@@ -61,19 +60,36 @@ contract Admin is Ownable{
         router = IUniswapV2Router02(_router);
         factory = IUniswapV2Factory(router.factory());
         lp = IUniswapV2Pair(factory.getPair(_wone, _hermes));
-        if( address(lp) == address(0) ){
+        if (address(lp) == address(0)) {
             lp = IUniswapV2Pair(factory.createPair(_wone, _hermes));
         }
     }
-    function run(uint woneAmount, uint hermesAmount ) external onlyOwner {
+
+    // add liquidity to
+    function run(uint256 woneAmount, uint256 hermesAmount) external onlyOwner {
         wone.safeTransferFrom(address(msg.sender), address(this), woneAmount);
-        hermes.safeTransferFrom(address(msg.sender), address(this), hermesAmount);
+        hermes.safeTransferFrom(
+            address(msg.sender),
+            address(this),
+            hermesAmount
+        );
         wone.approve(address(router), woneAmount);
         hermes.approve(address(router), hermesAmount);
-        router.addLiquidity(address(wone), address(hermes), woneAmount, hermesAmount, 0, 0, msg.sender, block.timestamp+60);
+        router.addLiquidity(
+            address(wone),
+            address(hermes),
+            woneAmount,
+            hermesAmount,
+            0,
+            0,
+            msg.sender,
+            block.timestamp + 60
+        );
         main.adminSwap();
     }
-    function withdrawAsset(IERC20 asset, uint amount) external onlyOwner {
+
+    // used to withdraw lp balance?
+    function withdrawAsset(IERC20 asset, uint256 amount) external onlyOwner {
         asset.safeTransfer(msg.sender, amount);
     }
 }

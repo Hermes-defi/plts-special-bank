@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "test": "npx hardhat test",
+    "start": "ganache-cli --fork https://rpc.hermesdefi.io/",
+    "test:admin": "hardhat test test/admin.test.ts --network localhost",
+    "test:main": "hardhat test test/main.test.ts --network localhost",
+    "test": "hardhat test --network localhost",
     "live": "nodemon --exec yarn test -e sol,js,ts"
   },
   "devDependencies": {
