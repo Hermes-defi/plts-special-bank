@@ -24,7 +24,7 @@
 */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -34,11 +34,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./swap/interfaces/IUniswapV2Router02.sol";
 import "./swap/interfaces/IUniswapV2Factory.sol";
 import "./swap/interfaces/IUniswapV2Pair.sol";
-import "./main.sol";
+
+interface IMain{
+    function adminSwap() external;
+}
 
 contract Admin is Ownable{
     using SafeERC20 for IERC20;
-    Main public main;
+    IMain public main;
     IERC20 public wone;
     IERC20 public plts;
     IERC20 public hermes;
@@ -54,7 +57,7 @@ contract Admin is Ownable{
         address _router
     ) public
     {
-        main = Main(_main);
+        main = IMain(_main);
         wone = IERC20(_wone);
         plts = IERC20(_plts);
         hermes = IERC20(_hermes);
