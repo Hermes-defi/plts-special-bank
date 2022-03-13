@@ -26,11 +26,11 @@
         // contract object to make calls
         let plts, hermes, main, admin, wone, lp;
 
-        const woneAddress = '0x601abbEAC8D743be7AbeAac24c2af30A19ace7C8'
-        const pltsAddress = '0x0B4F4dD7aF72d4Ac34BCb7979856757371Be0AE5'
-        const hermesAddress = '0xcb97cBf0Bf6a07DA52bf20982529D8b211C5F089'
-        const mainAddress = '0x8a15f72Cc2F0Dd81be9a50042B5f8B40E6dAaeBF'
-        const adminAddress = '0x14500Ff42909e1Fdbad7db2dca5aCbb3a4FBfEF3'
+        const woneAddress = '0x776658d26341b554f68d09FEa7bd7aa58247A3b0'
+        const pltsAddress = '0x953918EC01ab6Fdd961C6916208C97aE426a2443'
+        const hermesAddress = '0xa3fdc42693D9Be95eE1AEf60D5B9015DCd98a095'
+        const mainAddress = '0xf2eB51Fbc4A8552d8d235560Ea8bA80C1D57E663'
+        const adminAddress = '0xc5C430B46526dE2AeaBE35beA26F6C2E2c41f06F'
 
     </script>
 
@@ -95,6 +95,11 @@
         <div><i>This are tools for admin, just approve both token and click run do to the Swap.
         After, deposit to farming contract get halted and users can only withdraw.</i></div>
         <hr/>
+
+        <div>
+            adminInit: <input id="hermes" value=""/>
+            <input value="adminInit" type="button" onclick="adminInit($('#hermes').val())"/>
+        </div>
 
         <div>
             <span id="adminAllowanceWONE">Allowance WONE</span>

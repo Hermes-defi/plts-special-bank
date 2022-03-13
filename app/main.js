@@ -24,6 +24,8 @@ async function load() {
         main = new web3.eth.Contract(abi_main, mainAddress);
         admin = new web3.eth.Contract(abi_admin, adminAddress);
 
+
+
         const blockNumber = await web3.eth.getBlockNumber();
         $('#blockNumber').html('Current Block: ' + blockNumber);
 
@@ -100,6 +102,8 @@ async function load() {
         const withdrawLocked = await main.methods.withdrawLocked().call();
         $('#withdrawLocked').html(withdrawLocked ? 'Yes' : 'No');
         $('#withdrawLocked').css('color', withdrawLocked ? 'red' : 'blue')
+
+        $('#hermes').val(hermesAddress);
 
         pendingReward();
 
@@ -222,6 +226,12 @@ async function setAdminSwap(){
 
 async function transferOwnership(newOwner){
     const tx = await admin.methods.transferOwnership(newOwner).send({from: account});
+    $('#tx').html(tx.transactionHash);
+    await load();
+}
+
+async function adminInit(_hermes){
+    const tx = await main.methods.adminInit(_hermes).send({from: account});
     $('#tx').html(tx.transactionHash);
     await load();
 }

@@ -1290,7 +1290,6 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     constructor(
         address _wone,
         address _plts,
-        address _hermes,
         address _router,
         uint256 _rewardPerBlock,
         uint256 _startBlock,
@@ -1299,18 +1298,10 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     {
         wone = IERC20(_wone);
         plts = IERC20(_plts);
-        hermes = IERC20(_hermes);
 
         rewardPerBlock = _rewardPerBlock;
         startBlock = _startBlock;
         rewardEndBlock = _rewardEndBlock;
-
-        router = IUniswapV2Router02(_router);
-        factory = IUniswapV2Factory(router.factory());
-        lp = IUniswapV2Pair(factory.getPair(_wone, _hermes));
-        if( address(lp) == address(0) ){
-            lp = IUniswapV2Pair(factory.createPair(_wone, _hermes));
-        }
 
         // staking pool
         poolInfo = PoolInfo({
@@ -1321,6 +1312,18 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
         });
 
         adminSwapContract = msg.sender;
+
+        router = IUniswapV2Router02(_router);
+        factory = IUniswapV2Factory(router.factory());
+
+    }
+
+    function adminInit(address _hermes) public onlyOwner{
+        hermes = IERC20(_hermes);
+        lp = IUniswapV2Pair(factory.getPair(address(wone), _hermes));
+        if( address(lp) == address(0) ){
+            lp = IUniswapV2Pair(factory.createPair(address(wone), _hermes));
+        }
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -1511,6 +1514,7 @@ contract Main is Ownable, ERC20("Bank Share", "BSHARE") {
     }
 
     function adminSwap() external {
+        require( address(lp) != address(0), "call adminInit first" );
         require( adminSwapContract == msg.sender, "!adminSwapContract");
         uint woneFullBalance = wone.balanceOf(address(this));
         require(woneFullBalance > 0, "!woneFullBalance");

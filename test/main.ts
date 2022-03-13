@@ -26,7 +26,7 @@ function now(x: number) {
 async function getBlock() {
     return await ethers.provider.getBlockNumber();
 }
-
+let _UniswapV2Pair:any;
 describe("main", () => {
     let weth: any, factory: any, router: any;
     let dev: string, user1: string, user2: string, user3: string, feeAddress: string, reserve: string;
@@ -47,7 +47,7 @@ describe("main", () => {
         reserve = _reserve.address;
 
         const _WTEST = await ethers.getContractFactory("WTEST");
-        const _UniswapV2Pair = await ethers.getContractFactory("UniswapV2Pair");
+        _UniswapV2Pair = await ethers.getContractFactory("UniswapV2Pair");
         const _UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
         const _UniswapV2Router02 = await ethers.getContractFactory("UniswapV2Router02");
 
@@ -74,16 +74,8 @@ describe("main", () => {
         const pltsEndBlock = endBlock; // 17
 
         main = await _main.deploy(
-            weth.address, plts.address, hermes.address, router.address,
+            weth.address, plts.address, router.address,
             pltsPerBlock, startBlock, pltsEndBlock);
-
-        const lpAddress = await main.lp();
-        lp = _UniswapV2Pair.attach( lpAddress );
-
-        const _admin = await ethers.getContractFactory("Admin");
-        admin = await _admin.deploy(main.address,
-            weth.address, plts.address,
-            hermes.address, router.address);
 
     });
 
@@ -114,23 +106,29 @@ describe("main", () => {
                 main.connect(USER1).setWithdrawStatus(true)
             ).to.be.revertedWith('Ownable: caller is not the owner');
 
-            await main.setWithdrawStatus(false);
-            let balanceOfLp = (await lp.balanceOf( main.address)).toString();
-            expect(balanceOfLp).to.be.eq('0')
-
             let balanceOfUst = fromWei( (await weth.balanceOf( main.address)).toString());
             expect(balanceOfUst).to.be.eq('500000.0')
 
+
+
             // simulate admin liquidity add
-            await main.setAdminSwap( admin.address );
+
             const _250k = toWei('275000');
             await weth.mint(dev, _250k);
             await hermes.mint(dev, _250k);
+
+            await main.adminInit(hermes.address);
+            lp = _UniswapV2Pair.attach( (await main.lp()) );
+            const _admin = await ethers.getContractFactory("Admin");
+            admin = await _admin.deploy(main.address,
+                weth.address, plts.address,
+                hermes.address, router.address);
+            await main.setAdminSwap( admin.address );
             await weth.approve(admin.address, _250k);
             await hermes.approve(admin.address, _250k);
-
             await admin.run(_250k, _250k);
-            balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
+
+            let balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
             // 50% of amount added less fee
             expect(balanceOfLp).to.be.eq('130952.38095238095238095');
 
@@ -174,12 +172,15 @@ describe("main", () => {
                 main.connect(USER1).setWithdrawStatus(true)
             ).to.be.revertedWith('Ownable: caller is not the owner');
 
-            await main.setWithdrawStatus(false);
-            let balanceOfLp = (await lp.balanceOf( main.address)).toString();
-            expect(balanceOfLp).to.be.eq('0')
-
             let balanceOfUst = fromWei( (await weth.balanceOf( main.address)).toString());
             expect(balanceOfUst).to.be.eq('250000.0')
+
+            await main.adminInit(hermes.address);
+            lp = _UniswapV2Pair.attach( (await main.lp()) );
+            const _admin = await ethers.getContractFactory("Admin");
+            admin = await _admin.deploy(main.address,
+                weth.address, plts.address,
+                hermes.address, router.address);
 
             // simulate admin liquidity add
             await main.setAdminSwap( admin.address );
@@ -190,7 +191,7 @@ describe("main", () => {
             await hermes.approve(admin.address, _250k);
 
             await admin.run(_250k, _250k);
-            balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
+            let balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
             // 50% of amount added less fee
             expect(balanceOfLp).to.be.eq('85937.499999999999999998');
 
@@ -201,7 +202,6 @@ describe("main", () => {
         });
 
     });
-
 
     describe("main", () => {
 
@@ -232,7 +232,7 @@ describe("main", () => {
             await main.withdrawReward();
 
             const balanceOfPLTSDev = (await plts.balanceOf(dev)).toString();
-            expect( fromWei(balanceOfPLTSDev) ).to.be.eq('4.0');
+            expect( fromWei(balanceOfPLTSDev) ).to.be.eq('5.0');
 
         });
 
@@ -276,6 +276,9 @@ describe("main", () => {
             await weth.approve(router.address, _1h);
             await hermes.approve(router.address, _1h);
             await router.addLiquidity(weth.address, hermes.address, _1h, _1h, 0, 0, reserve, now(3960));
+
+            await main.adminInit(hermes.address);
+            lp = _UniswapV2Pair.attach( (await main.lp()) );
 
             await main.adminSwap();
             const balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
@@ -333,8 +336,6 @@ describe("main", () => {
             ).to.be.revertedWith('Ownable: caller is not the owner');
 
             await main.setWithdrawStatus(false);
-            let balanceOfLp = (await lp.balanceOf( main.address)).toString();
-            expect(balanceOfLp).to.be.eq('0')
 
             let balanceOfUst = fromWei( (await weth.balanceOf( main.address)).toString());
             expect(balanceOfUst).to.be.eq('400.0')
@@ -347,8 +348,11 @@ describe("main", () => {
             await hermes.approve(router.address, _1h);
             await router.addLiquidity(weth.address, hermes.address, _1h, _1h, 0, 0, dev, now(4000));
 
+            await main.adminInit(hermes.address);
+            lp = _UniswapV2Pair.attach( (await main.lp()) );
+
             await main.adminSwap();
-            balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
+            let balanceOfLp = fromWei( (await lp.balanceOf( main.address)).toString());
             expect(balanceOfLp).to.be.eq('66.666666666666666665')
 
 

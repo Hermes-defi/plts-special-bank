@@ -22,7 +22,7 @@
 
 
 */
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier-FLATTEN-SUPPRESS-WARNING: MIT
 pragma solidity ^0.6.12;
 // import "hardhat/console.sol";
 
