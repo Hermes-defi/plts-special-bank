@@ -13,11 +13,6 @@ const abi_main = [
             },
             {
                 "internalType": "address",
-                "name": "_hermes",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
                 "name": "_router",
                 "type": "address"
             },
@@ -279,6 +274,19 @@ const abi_main = [
         ],
         "name": "WithdrawReward",
         "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_hermes",
+                "type": "address"
+            }
+        ],
+        "name": "adminInit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
         "inputs": [],

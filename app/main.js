@@ -51,8 +51,8 @@ async function load() {
         $('#mainLpAddress').html('LP: ' + mainLpAddress);
 
         lp = new web3.eth.Contract(abi_token, mainLpAddress);
-        const myLPBalance = await lp.methods.balanceOf(account).call();
-        $('#myLpBalance').html(fromWei(myLPBalance));
+        // const myLPBalance = await lp.methods.balanceOf(account).call();
+        // $('#myLpBalance').html(fromWei(myLPBalance));
 
 
 
