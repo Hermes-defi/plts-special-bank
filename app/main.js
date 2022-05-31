@@ -4,6 +4,9 @@ function fromWei(v) {
 function toWei(v) {
     return web3.utils.toWei(v);
 }
+function toGWei(v) {
+    return web3.utils.toWei(v,'gwei');
+}
 async function accountLoad() {
     if (window.ethereum) {
         const r = await window.ethereum.request({method: 'eth_requestAccounts'});
